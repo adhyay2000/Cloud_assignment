@@ -1,4 +1,10 @@
 package com.project.jobUtils;
+import com.project.Globals;
+import com.project.contracts.DBManager;
+import com.project.models.Output;
+import com.project.utils.AggFunc;
+import com.project.utils.ParseSql;
+import com.project.utils.Tables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -28,18 +34,18 @@ public class GroupBy {
      * @throws ClassNotFoundException if Hadoop environment fails to find the relevant class
      * @throws SQLException           if the SQL query could not be parsed successfully
      */
-    public static OutputModel execute(ParseSQL parsedSQL) throws IOException,
+    public static OutputModel execute(ParseSql parsedSQL) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
 
-        OutputModel groupByOutput = new OutputModel();
+        Output groupByOutput = new Output();
 
         Configuration conf = new Configuration();
-
+        
         // like defined in hdfs-site.xml (required for reading file from hdfs)
-        conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        conf.set("fs.defaultFS", Globals.getNamenodeUrl());
 
         // defining properties to be used later by mapper and reducer
-        conf.setEnum("table", parsedSQL.getTable1());
+        conf.setEnum("table", parsedSQL.getTable());
         conf.setEnum("aggregateFunction", parsedSQL.getAggregateFunction());
         conf.setInt("comparisonNumber", parsedSQL.getComparisonNumber());
         conf.setStrings("columns", parsedSQL.getColumns().toArray(new String[0]));
@@ -79,7 +85,8 @@ public class GroupBy {
         groupByOutput.setHadoopExecutionTime(execTime + " milliseconds");
 
         // creating scheme for mapper
-        //TODO
+        StringBuilder mapperScheme = new StringBuilder("<serial_number, (");
+
 
         // mapper input value
 //        appendColumns(parsedSQL.getColumns(), mapperScheme);
