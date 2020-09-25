@@ -11,7 +11,7 @@ import java.io.IOException;
 	name="sql";
 	urlPatterns = "/sql";
 }
-public class sqlservlet extends HttpServelt{
+public class sqlservlet extends HttpServlet{
 	@Override
 	protected void doPost(HttpServletRequest req,HttpServletResponse res) throws ServletException,IOException{
 		String SQL = req.getParameter("sql");
