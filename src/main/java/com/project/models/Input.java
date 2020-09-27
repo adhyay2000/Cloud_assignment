@@ -6,17 +6,18 @@ import com.project.utils.Tables;
 public class Input{
 	private String select_part;
 	private String from_part;
+	private String where_part;
 	private String groupBy_part;
 	private String having_part;
-	private ArrayList<int> selection_col;
 	private Tables table;
-	private int selection_func_col;
-	private AggFunc fn;
-	private ArrayList<int> group_col;
 	private int comparisonNumber;
-	public Input(String select,String from,String groupBy,String having){
+	private int fnCol;
+	private AggFunc fn;
+	private ArrayList<int> columns;
+	public Input(String select,String from,String where,String groupBy,String having){
 		select_part=select;
 		from_part=from;
+		where_part = where;
 		groupBy_part=groupBy;
 		having_part=having;
 		selection_col = new ArrayList<>();
@@ -64,5 +65,20 @@ public class Input{
 			String column = st.nextToken();
 			groupBy.add(findIndex(table,column));
 		}
+	}
+	public Table getTable(){
+		return table;
+	}
+	public AggFunc getAggFunc(){
+		return fn;
+	}
+	public int getComparisonNumber(){
+		return comparisonNumber;
+	}
+	public ArrayList<int> getcolumns(){
+		return columns;
+	}
+	public int getFnCol(){
+		return fnCol;
 	}
 }

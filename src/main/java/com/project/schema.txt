@@ -1,0 +1,33 @@
+Make csv files.
+
+
+Order of execution of sql queries
+1. FROM (choose a table)
+
+2. WHERE (choose certain rows that satisfy a query)
+3. GROUP BY (group based on constraint)
+4. HAVING (discard grouped rows that don't satisfy condition)
+5. SELECT (only show these columns)
+
+
+Products:(Id,ASIN,Title,Group,SalesRank,NumSimilar,TotalReview,DownloadedReview,AvgRating) CAN BE GROUPED ON group,AvgRating,TotalReview,DownloadedReview,NumSimilar
+
+Categories:Title(name[id]),parentTitle(name[id]),count_child
+
+
+find all parent categories of product ID:23
+A: If I Store heirarchy as a string, then select only those rows which has product id:23, then find unique set
+
+find count of all items under religion and Sprituality,fba,asfnioanga,
+A: Read all complete table, if any heirarchy has religion and Sprituality
+Map Output: <category,product_id> Map Input:<line number,line>
+Map:read a line and if given category is present, output<ca
+Reduce Input:<cateogry,redundant_listof product> Reduce Output:<category,>
+
+
+select product_id,count(hierarchy_in_which_R&S comes)
+from categories
+where category = ""
+
+
+use one-hot encoding, 

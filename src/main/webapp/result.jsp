@@ -4,8 +4,8 @@
 		<center>
 			<h1>RESULT:</h1>
 			<%
-			json ans = (json)request.getAttribute("result");
-			print json
+			String ans = (String)request.getAttribute("results");
+			System.out.println(ans);
 			%>
 	</body>
 </html>

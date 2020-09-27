@@ -13,12 +13,8 @@ public class ParseSQL {
     // gets the columns to be fetched (could be * or list of columns)
     private ArrayList<String> columns;
 
-    // either of INNER_JOIN or GROUP_BY
-    private QueryType queryType;
-
     // stores the tables of interest
-    private Tables table1;
-    private Tables table2;
+    private Tables table;
 
     // stores either the column on which join is to be performed, or on which columns grouping is done
     private ArrayList<String> operationColumns;

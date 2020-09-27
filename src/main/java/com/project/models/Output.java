@@ -20,7 +20,7 @@ public class Output{
      * <br>
      * (All parameters which are null are ignored during serialization to JSON)
      */
-    public OutputModel() {
+    public Output() {
         hadoopExecutionTime = null;
         GroupByMapperPlan = null;
         GroupByReducerPlan = null;
