@@ -1,6 +1,7 @@
 package com.project.models;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+import java.util.StringBuilder;
 import com.project.utils.AggFunc;
 import com.project.utils.Tables;
 public class Input{
@@ -13,18 +14,18 @@ public class Input{
 	private int comparisonNumber;
 	private int fnCol;
 	private AggFunc fn;
-	private ArrayList<int> columns;
+	private ArrayList<String> columns;
+	private Boolean isLess,isGreater,isEqual;
 	public Input(String select,String from,String where,String groupBy,String having){
 		select_part=select;
 		from_part=from;
 		where_part = where;
 		groupBy_part=groupBy;
 		having_part=having;
-		selection_col = new ArrayList<>();
+		columns = new ArrayList<>();
 		table = TABLES.NONE;
 		fn=AggFunc.NONE;
 		comparisonNumber = -1;
-		group_col = new ArrayList<>();
 	}
 	public void parse(){
 		if(from_part=="PRODUCTS"){
@@ -37,11 +38,11 @@ public class Input{
 			table=TABLES.REVIEWS;
 		}
 		StringTokenizer st = new StringTokenizer(select_part,",");
-		//Maintain hashMap for string to index mapping
+		//Maintain hashMap for string to index mapping:Done in DBManager
 		while(st.hasMoreTokens()){
 			String column = st.nextToken();
 			if(st.hasMoreTokens()==True){
-				selection_col.add(findIndex(table,column));
+				columns.add(column);
 			}else{ //isLast
 				String tmp;
 				if(column.startsWith("COUNT")){
@@ -57,14 +58,40 @@ public class Input{
 					fn=AggFunc.MIN;
 					tmp=column.substring(3);
 				}
-				selection_func_col = findIndex(table,tmp);
+				fnCol = getColumnIndex(table,tmp);
 			}
 		}
-		st = new StringTokenizer(groupBy_part,",");
-		while(st.hasMoreTokens()){
-			String column = st.nextToken();
-			groupBy.add(findIndex(table,column));
+		st = new StringTokenizer(having_part,' '); //func(col) >  X
+		st.nextToken();
+		String tmp = st.nextToken();
+		if(tmp==">"){
+			isGreater=true;
+		}else if(tmp==">="){
+			isGreater = true;
+			isEqual=true;
+		}else if(tmp=="<"){
+			isLess = true;
+		}else if(tmp=="<="){
+			isLess=true;
+			isEqual=true;
+		}else if(tmp=="=="){
+			isEqual=true;
 		}
+		comparisonNumber = Integer.parseInt(st.nextToken());
+	}
+	public String getQuery(){
+		StringBuilder str = new StringBuilder();
+		str.append("SELECT ");
+		str.append(select_part);
+		str.append("FROM ");
+		str.append(from_part);
+		str.append("WHERE ");
+		str.append(where_part);
+		str.append("GROUP BY ");
+		str.append(groupBy_part);
+		str.append("HAVING");
+		str.append(having_part);
+		return str.toString();
 	}
 	public Table getTable(){
 		return table;
