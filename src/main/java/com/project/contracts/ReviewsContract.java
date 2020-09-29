@@ -7,14 +7,14 @@ public class ReviewsContract implements Cloneable{
 	private static final HashMap<String,Integer> map;
 	private static final ArrayList<String> index2col;
 	static{
-		map = new HashMap<>();
+		map = new HashMap<String,Integer>();
 		map.put("Id",0);
 		map.put("Time",1);
 		map.put("UserId",2);
 		map.put("Rating",3);
 		map.put("TotalVotes",4);
 		map.put("HelpfulnessVotes",5);
-		index2col = new ArrayList<>();
+		index2col = new ArrayList<String>();
 		index2col.add("Id");
 		index2col.add("Time");
 		index2col.add("UserId");
@@ -33,14 +33,14 @@ public class ReviewsContract implements Cloneable{
     }
 
     static String getColumnFromIndex(int index) throws IllegalArgumentException {
-        if (!(index > indToCol.size() - 1)) {
-            return indToCol.get(index);
+        if (!(index > index2col.size() - 1)) {
+            return index2col.get(index);
         }
         throw new IllegalArgumentException("Given column does not exist in Reviews table");
     }
 
     static int getNumColumns() {
-        return indToCol.size();
+        return index2col.size();
     }
 
     static String getFileName() {

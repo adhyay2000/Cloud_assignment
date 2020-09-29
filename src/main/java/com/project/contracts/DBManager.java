@@ -1,6 +1,6 @@
-package com.cloud.project.contracts;
+package com.project.contracts;
 
-import com.cloud.utils.Tables;
+import com.project.utils.Tables;
 
 /**
  * Class that handles returning of the index of a required column from a given table
@@ -25,11 +25,11 @@ public class DBManager implements Cloneable {
         //System.out.println(">>>>>>" + table.name() + "." + column);
         switch (table) {
             case PRODUCTS:
-                return ProductsContract.getColumnIndex(column);
-            case SIMILAR:
-                return SimilarContract.getColumnIndex(column);
-            case CATEGORIES:
-                return CategoriesContract.getColumnIndex(column);
+                return ProductsContracts.getColumnIndex(column);
+            // case SIMILAR:
+            //     return SimilarContracts.getColumnIndex(column);
+            // case CATEGORIES:
+            //     return CategoriesContract.getColumnIndex(column);
             case REVIEWS:
                 return ReviewsContract.getColumnIndex(column);
             default:
@@ -49,11 +49,11 @@ public class DBManager implements Cloneable {
             throws IllegalArgumentException {
         switch (table) {
             case PRODUCTS:
-                return ProductsContract.getColumnFromIndex(index);
-            case SIMILAR:
-                return SimilarContract.getColumnFromIndex(index);
-            case CATEGORIES:
-                return CategoriesContract.getColumnFromIndex(index);
+                return ProductsContracts.getColumnFromIndex(index);
+            // case SIMILAR:
+            //     return SimilarContract.getColumnFromIndex(index);
+            // case CATEGORIES:
+            //     return CategoriesContract.getColumnFromIndex(index);
             case REVIEWS:
                 return ReviewsContract.getColumnFromIndex(index);
             default:
@@ -72,11 +72,11 @@ public class DBManager implements Cloneable {
             throws IllegalArgumentException {
         switch (table) {
             case PRODUCTS:
-                return ProductsContract.getNumColumns();
-            case SIMILAR:
-                return SimilarContract.getNumColumns();
-            case CATEGORIES:
-                return CategoriesContract.getNumColumns();
+                return ProductsContracts.getNumColumns();
+            // case SIMILAR:
+            //     return SimilarContract.getNumColumns();
+            // case CATEGORIES:
+            //     return CategoriesContract.getNumColumns();
             case REVIEWS:
                 return ReviewsContract.getNumColumns();
             default:
@@ -94,11 +94,11 @@ public class DBManager implements Cloneable {
     public static String getFileName(Tables table) throws IllegalArgumentException {
         switch (table) {
             case PRODUCTS:
-                return ProductsContract.getFileName();
-            case SIMILAR:
-                return SimilarContract.getFileName();
-            case CATEGORIES:
-                return CategoriesContract.getFileName();
+                return ProductsContracts.getFileName();
+            // case SIMILAR:
+            //     return SimilarContract.getFileName();
+            // case CATEGORIES:
+            //     return CategoriesContract.getFileName();
             case REVIEWS:
                 return ReviewsContract.getFileName();
             default:

@@ -1,6 +1,8 @@
+//SEE IF THIS IS REQUIRED
 package com.project.contracts;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+public class SimilarContracts implements Cloneable{
+	private SimilarContracts(){
 
-//SEE IF THIS IS REQUIRED
+	}
+}

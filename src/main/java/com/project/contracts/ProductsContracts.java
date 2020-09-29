@@ -3,11 +3,11 @@ package com.project.contracts;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class ProductsContract implements Cloneable{
+public class ProductsContracts implements Cloneable{
 	private static final HashMap<String,Integer> map;
 	private static final ArrayList<String> index2col;
 	static{
-		map = new HashMap<>();
+		map = new HashMap<String,Integer>();
 		map.put("Id",0);
 		map.put("ASIN",1);
 		map.put("Title",2);
@@ -17,7 +17,7 @@ public class ProductsContract implements Cloneable{
 		map.put("TotalReview",6);
 		map.put("DownloadedReview",7);
 		map.put("AvgRating",8);
-		index2col = new ArrayList<>();
+		index2col = new ArrayList<String>();
 		index2col.add("Id");
 		index2col.add("ASIN");
 		index2col.add("Title");
@@ -28,7 +28,7 @@ public class ProductsContract implements Cloneable{
 		index2col.add("DownloadedReview");
 		index2col.add("AvgRating");
 	}
-	private ProductsContract(){
+	private ProductsContracts(){
 
 	}
     static int getColumnIndex(String column) throws IllegalArgumentException {
@@ -39,14 +39,14 @@ public class ProductsContract implements Cloneable{
     }
 
     static String getColumnFromIndex(int index) throws IllegalArgumentException {
-        if (!(index > indToCol.size() - 1)) {
-            return indToCol.get(index);
+        if (!(index > index2col.size() - 1)) {
+            return index2col.get(index);
         }
         throw new IllegalArgumentException("Given column does not exist in Products table");
     }
 
     static int getNumColumns() {
-        return indToCol.size();
+        return index2col.size();
     }
 
     static String getFileName() {

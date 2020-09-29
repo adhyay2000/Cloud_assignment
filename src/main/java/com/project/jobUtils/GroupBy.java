@@ -2,8 +2,8 @@ package com.project.jobUtils;
 import com.project.Globals;
 import com.project.contracts.DBManager;
 import com.project.models.Output;
+import com.project.models.Input;
 import com.project.utils.AggFunc;
-import com.project.utils.ParseSql;
 import com.project.utils.Tables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -27,17 +27,17 @@ public class GroupBy {
     /**
      * Executes the Hadoop Map-Reduce job for a Group By query
      *
-     * @param parsedSQL instance of {@link ParseSQL} which contains the relevant tokens from the parsed SQL query
+     * @param input instance of {@link ParseSQL} which contains the relevant tokens from the parsed SQL query
      * @return an instance of {@link OutputModel} populated with relevant fields from Hadoop execution
      * @throws IOException            if Hadoop IO fails
      * @throws InterruptedException   if Hadoop job is interrupted
      * @throws ClassNotFoundException if Hadoop environment fails to find the relevant class
      * @throws SQLException           if the SQL query could not be parsed successfully
      */
-    public static OutputModel execute(ParseSql parsedSQL) throws IOException,
+    public static Output execute(Input input) throws IOException,
             InterruptedException, ClassNotFoundException, SQLException {
 
-        Output groupByOutput = new Output();
+        Output output = new Output();
 
         Configuration conf = new Configuration();
         
@@ -45,18 +45,19 @@ public class GroupBy {
         conf.set("fs.defaultFS", Globals.getNamenodeUrl());
 
         // defining properties to be used later by mapper and reducer
-        conf.setEnum("table", parsedSQL.getTable());
-        conf.setEnum("aggregateFunction", parsedSQL.getAggregateFunction());
-        conf.setInt("comparisonNumber", parsedSQL.getComparisonNumber());
-        conf.setStrings("columns", parsedSQL.getColumns().toArray(new String[0]));
-        conf.setStrings("operationColumns", parsedSQL.getOperationColumns().toArray(new String[0]));
+        conf.setEnum("table", input.getTable());
+        conf.setEnum("aggregateFunction", input.getAggFunc());
+        conf.setInt("comparisonNumber", input.getComparisonNumber());
+        conf.setStrings("columns", input.getColumns().toArray(new String[0]));
+        //TODO
+        // conf.setStrings("operationColumns", input.getOperationColumns().toArray(new String[0]));
 
         // creating job and defining jar
         Job job = Job.getInstance(conf, "GroupBy");
         job.setJarByClass(GroupBy.class);
 
         // setting combiner class
-        job.setCombinerClass(GroupByCombiner.class);
+        job.setCombinerClass(GroupByReducer.class);
 
         // setting the reducer
         job.setReducerClass(GroupByReducer.class);
@@ -67,7 +68,7 @@ public class GroupBy {
 
         // passing the required csv file as file path
         MultipleInputs.addInputPath(job,
-                new Path(Globals.getCsvInputPath() + DBManager.getFileName(parsedSQL.getTable())),
+                new Path(Globals.getCsvInputPath() + DBManager.getFileName(input.getTable())),
                 TextInputFormat.class, GroupByMapper.class);
 
         // defining path of output file
@@ -82,37 +83,37 @@ public class GroupBy {
         long execTime = endTime - startTime;
 
         // writing time of execution as output
-        groupByOutput.setHadoopExecutionTime(execTime + " milliseconds");
+        output.setHadoopExecutionTime(execTime + " milliseconds");
 
         // creating scheme for mapper
         StringBuilder mapperScheme = new StringBuilder("<serial_number, (");
 
 
         // mapper input value
-//        appendColumns(parsedSQL.getColumns(), mapperScheme);
-        for (int i = 0; i < DBManager.getTableSize(parsedSQL.getTable1()) - 1; i++) {
-            mapperScheme.append(DBManager.getColumnFromIndex(parsedSQL.getTable1(), i)).append(", ");
+//        appendColumns(input.getColumns(), mapperScheme);
+        for (int i = 0; i < DBManager.getTableSize(input.getTable()) - 1; i++) {
+            mapperScheme.append(DBManager.getColumnFromIndex(input.getTable(), i)).append(", ");
         }
-        mapperScheme.append(DBManager.getColumnFromIndex(parsedSQL.getTable1(),
-                DBManager.getTableSize(parsedSQL.getTable1()) - 1));
+        mapperScheme.append(DBManager.getColumnFromIndex(input.getTable(),
+                DBManager.getTableSize(input.getTable()) - 1));
         mapperScheme.append(")> ---> <(");
 
         // mapper output key
-        appendColumns(parsedSQL.getColumns(), mapperScheme);
+        appendColumns(input.getColumns(), mapperScheme);
         mapperScheme.append("), ");
 
         String aggCol = null;
 
         // mapper output value
-        switch (parsedSQL.getAggregateFunction()) {
+        switch (input.getAggFunc()) {
             case COUNT:
                 mapperScheme.append("1");
                 break;
             case SUM:
             case MAX:
             case MIN:
-                aggCol = parsedSQL.getColumns()
-                        .get(parsedSQL.getColumns().size() - 1)
+                aggCol = input.getColumns()
+                        .get(input.getColumns().size() - 1)
                         .split("\\(")[1]
                         .split("\\)")[0];
                 mapperScheme.append(aggCol);
@@ -126,17 +127,17 @@ public class GroupBy {
         mapperScheme.append(">");
 
         // write mapper scheme
-        groupByOutput.setGroupByMapperPlan(mapperScheme.toString());
+        output.setGroupByMapperPlan(mapperScheme.toString());
 
         // creating reducer scheme
         StringBuilder reducerScheme = new StringBuilder("<(");
 
         // reducer input key
-        appendColumns(parsedSQL.getColumns(), reducerScheme);
+        appendColumns(input.getColumns(), reducerScheme);
         reducerScheme.append("), {");
 
         // reducer input value
-        switch (parsedSQL.getAggregateFunction()) {
+        switch (input.getAggFunc()) {
             case COUNT:
                 reducerScheme.append("1, 1, 1, ... 1");
                 break;
@@ -156,17 +157,17 @@ public class GroupBy {
         reducerScheme.append("}> ---> <(");
 
         // reducer output key
-        appendColumns(parsedSQL.getColumns(), reducerScheme);
+        appendColumns(input.getColumns(), reducerScheme);
         reducerScheme.append("), ");
 
         // reducer output value
-        reducerScheme.append(parsedSQL.getColumns().get(parsedSQL.getColumns().size() - 1)).append(">");
+        reducerScheme.append(input.getColumns().get(input.getColumns().size() - 1)).append(">");
 
         // setting reducer plan
-        groupByOutput.setGroupByReducerPlan(reducerScheme.toString());
+        output.setGroupByReducerPlan(reducerScheme.toString());
 
         // setting hadoop output URL
-//        groupByOutput.setHadoopOutputUrl(
+//        output.setHadoopOutputUrl(
 //                "http://localhost:9870/webhdfs/v1/output/part-r-00000?op=OPEN " +
 //                        " (Note: WebHDFS should be enabled for this to work)"
 //        );
@@ -196,9 +197,9 @@ public class GroupBy {
 
         downloadUrl.append("NOTE: These URLs will work only if WebHDFS is enabled");
 
-        groupByOutput.setHadoopOutputUrl(downloadUrl.toString());
+        output.setHadoopOutputUrl(downloadUrl.toString());
 
-        return groupByOutput;
+        return output;
     }
 
     /**
@@ -220,7 +221,7 @@ public class GroupBy {
     private static class GroupByMapper extends Mapper<Object, Text, Text, Text> {
 
         private static String[] columns;
-        private static AggregateFunction aggregateFunction;
+        private static AggFunc aggregateFunction;
         private static Tables table;
         private static int comparisonNumber;
 
@@ -235,7 +236,7 @@ public class GroupBy {
         protected void setup(Context context) throws IOException, InterruptedException {
             Configuration conf = context.getConfiguration();
             columns = conf.getStrings("columns");
-            aggregateFunction = conf.getEnum("aggregateFunction", AggregateFunction.NONE);
+            aggregateFunction = conf.getEnum("aggregateFunction", AggFunc.NONE);
             table = conf.getEnum("table", Tables.NONE);
             comparisonNumber = conf.getInt("comparisonNumber", Integer.MIN_VALUE);
             super.setup(context);
@@ -303,85 +304,85 @@ public class GroupBy {
         }
     }
 
-    /**
-     * Class for running a Combiner job on the results of the Map job for the Group By SQL query
-     */
-    private static class GroupByCombiner extends Reducer<Text, Text, Text, Text> {
+    // /**
+    //  * Class for running a Combiner job on the results of the Map job for the Group By SQL query
+    //  */
+    // private static class GroupByCombiner extends Reducer<Text, Text, Text, Text> {
 
-        private static AggregateFunction aggregateFunction;
-        private static int comparisonNumber;
+    //     private static AggregateFunction aggregateFunction;
+    //     private static int comparisonNumber;
 
-        /**
-         * Method to perform the initial setup of the Combiner Job.
-         * @param context instance of {@link org.apache.hadoop.mapreduce.Reducer.Context}
-         * @throws IOException if the Hadoop job encounters this exception
-         * @throws InterruptedException if the Hadoop job encounters this exception
-         */
-        @Override
-        protected void setup(Context context) throws IOException, InterruptedException {
-            Configuration conf = context.getConfiguration();
-            aggregateFunction = conf.getEnum("aggregateFunction", AggregateFunction.NONE);
-            comparisonNumber = conf.getInt("comparisonNumber", Integer.MIN_VALUE);
-            super.setup(context);
-        }
+    //     /**
+    //      * Method to perform the initial setup of the Combiner Job.
+    //      * @param context instance of {@link org.apache.hadoop.mapreduce.Reducer.Context}
+    //      * @throws IOException if the Hadoop job encounters this exception
+    //      * @throws InterruptedException if the Hadoop job encounters this exception
+    //      */
+    //     @Override
+    //     protected void setup(Context context) throws IOException, InterruptedException {
+    //         Configuration conf = context.getConfiguration();
+    //         aggregateFunction = conf.getEnum("aggregateFunction", AggregateFunction.NONE);
+    //         comparisonNumber = conf.getInt("comparisonNumber", Integer.MIN_VALUE);
+    //         super.setup(context);
+    //     }
 
-        /**
-         * Method which actually performs the combine task for the Group By query.
-         * <p>
-         *     Output key is same as the input key. Output value is generated by applying
-         *     the required aggregate function on the list input values.
-         * </p>
-         * @param key Input key which is same as the output key of the map job
-         * @param values list of input values where each one is same as the output value of the map job
-         * @param context instance of {@link org.apache.hadoop.mapreduce.Reducer.Context}
-         * @throws IOException if the Hadoop job encounters this exception
-         * @throws InterruptedException if the Hadoop job encounters this exception
-         */
-        @Override
-        public void reduce(Text key, Iterable<Text> values, Context context)
-                throws IOException, InterruptedException {
-            Iterator<Text> it = values.iterator();
-            switch (aggregateFunction) {
-                case MIN:
-                    int min = Integer.MAX_VALUE;
-                    while (it.hasNext()) {
-                        min = Math.min(Integer.parseInt(it.next().toString()), min);
-                    }
-                    if (min > comparisonNumber) {
-                        context.write(key, new Text(Integer.toString(min)));
-                    }
-                    break;
-                case MAX:
-                    int max = Integer.MIN_VALUE;
-                    while (it.hasNext()) {
-                        max = Math.max(Integer.parseInt(it.next().toString()), max);
-                    }
-                    if (max > comparisonNumber) {
-                        context.write(key, new Text(Integer.toString(max)));
-                    }
-                    break;
-                case SUM:
-                case COUNT:
-                    // both have same behavior (except count will be sum of 1s)
-                    long sum = 0;
-                    while (it.hasNext()) {
-                        sum += Integer.parseInt(it.next().toString());
-                    }
-                    context.write(key, new Text(Long.toString(sum)));
-                    break;
-                default:
-                    // not likely to be encountered
-                    throw new IllegalArgumentException("The aggregate function is not valid");
-            }
-        }
-    }
+    //     /**
+    //      * Method which actually performs the combine task for the Group By query.
+    //      * <p>
+    //      *     Output key is same as the input key. Output value is generated by applying
+    //      *     the required aggregate function on the list input values.
+    //      * </p>
+    //      * @param key Input key which is same as the output key of the map job
+    //      * @param values list of input values where each one is same as the output value of the map job
+    //      * @param context instance of {@link org.apache.hadoop.mapreduce.Reducer.Context}
+    //      * @throws IOException if the Hadoop job encounters this exception
+    //      * @throws InterruptedException if the Hadoop job encounters this exception
+    //      */
+    //     @Override
+    //     public void reduce(Text key, Iterable<Text> values, Context context)
+    //             throws IOException, InterruptedException {
+    //         Iterator<Text> it = values.iterator();
+    //         switch (aggregateFunction) {
+    //             case MIN:
+    //                 int min = Integer.MAX_VALUE;
+    //                 while (it.hasNext()) {
+    //                     min = Math.min(Integer.parseInt(it.next().toString()), min);
+    //                 }
+    //                 if (min > comparisonNumber) {
+    //                     context.write(key, new Text(Integer.toString(min)));
+    //                 }
+    //                 break;
+    //             case MAX:
+    //                 int max = Integer.MIN_VALUE;
+    //                 while (it.hasNext()) {
+    //                     max = Math.max(Integer.parseInt(it.next().toString()), max);
+    //                 }
+    //                 if (max > comparisonNumber) {
+    //                     context.write(key, new Text(Integer.toString(max)));
+    //                 }
+    //                 break;
+    //             case SUM:
+    //             case COUNT:
+    //                 // both have same behavior (except count will be sum of 1s)
+    //                 long sum = 0;
+    //                 while (it.hasNext()) {
+    //                     sum += Integer.parseInt(it.next().toString());
+    //                 }
+    //                 context.write(key, new Text(Long.toString(sum)));
+    //                 break;
+    //             default:
+    //                 // not likely to be encountered
+    //                 throw new IllegalArgumentException("The aggregate function is not valid");
+    //         }
+    //     }
+    // }
 
     /**
      * Class for running a Reducer job on the results of the Combiner for the Group By SQL query
      */
     private static class GroupByReducer extends Reducer<Text, Text, Text, Text> {
 
-        private static AggregateFunction aggregateFunction;
+        private static AggFunc aggregateFunction;
         private static int comparisonNumber;
 
         /**
@@ -393,7 +394,7 @@ public class GroupBy {
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
             Configuration conf = context.getConfiguration();
-            aggregateFunction = conf.getEnum("aggregateFunction", AggregateFunction.NONE);
+            aggregateFunction = conf.getEnum("aggregateFunction", AggFunc.NONE);
             comparisonNumber = conf.getInt("comparisonNumber", Integer.MIN_VALUE);
             super.setup(context);
         }

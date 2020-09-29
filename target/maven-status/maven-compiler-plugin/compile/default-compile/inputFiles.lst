@@ -1,0 +1,15 @@
+/home/aditya/Cloud_assignment/src/main/java/com/project/utils/Tables.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/jobUtils/GroupBy.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/contracts/ReviewsContract.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/contracts/ProductsContracts.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/contracts/DBManager.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/jobUtils/SparkGroupby.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/utils/AggFunc.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/contracts/CategoriesContract.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/utils/ParseSql.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/contracts/SimilarContracts.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/Globals.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/models/Input.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/config/AppConfig.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/sqlservlet.java
+/home/aditya/Cloud_assignment/src/main/java/com/project/models/Output.java

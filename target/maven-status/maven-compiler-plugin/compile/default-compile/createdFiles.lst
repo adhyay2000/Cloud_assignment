@@ -1,0 +1,16 @@
+com/project/models/Input.class
+com/project/utils/AggFunc.class
+com/project/contracts/ReviewsContract.class
+com/project/sqlservlet.class
+com/project/contracts/CategoriesContract.class
+com/project/jobUtils/GroupBy$GroupByReducer.class
+com/project/jobUtils/GroupBy$GroupByMapper.class
+com/project/jobUtils/GroupBy.class
+com/project/contracts/DBManager$1.class
+com/project/contracts/DBManager.class
+com/project/jobUtils/GroupBy$1.class
+com/project/contracts/ProductsContracts.class
+com/project/contracts/SimilarContracts.class
+com/project/models/Output.class
+com/project/Globals.class
+com/project/utils/Tables.class

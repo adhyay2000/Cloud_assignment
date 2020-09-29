@@ -1,9 +1,10 @@
 package com.project.models;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-import java.util.StringBuilder;
+import java.lang.StringBuilder;
 import com.project.utils.AggFunc;
 import com.project.utils.Tables;
+import com.project.contracts.DBManager;
 public class Input{
 	private String select_part;
 	private String from_part;
@@ -22,46 +23,46 @@ public class Input{
 		where_part = where;
 		groupBy_part=groupBy;
 		having_part=having;
-		columns = new ArrayList<>();
-		table = TABLES.NONE;
+		columns = new ArrayList<String>();
+		table = Tables.NONE;
 		fn=AggFunc.NONE;
 		comparisonNumber = -1;
 	}
 	public void parse(){
 		if(from_part=="PRODUCTS"){
-			table=TABLES.PRODUCTS;
+			table=Tables.PRODUCTS;
 		}else if(from_part=="SIMILAR"){
-			table=TABLES.SIMILAR;
+			table=Tables.SIMILAR;
 		}else if(from_part=="CATEGORIES"){
-			table=TABLES.CATEGORIES;
+			table=Tables.CATEGORIES;
 		}else if(from_part=="REVIEWS"){
-			table=TABLES.REVIEWS;
+			table=Tables.REVIEWS;
 		}
 		StringTokenizer st = new StringTokenizer(select_part,",");
 		//Maintain hashMap for string to index mapping:Done in DBManager
 		while(st.hasMoreTokens()){
 			String column = st.nextToken();
-			if(st.hasMoreTokens()==True){
+			if(st.hasMoreTokens()==true){
 				columns.add(column);
 			}else{ //isLast
-				String tmp;
+				String tmp="";
 				if(column.startsWith("COUNT")){
 					fn=AggFunc.COUNT;
 					tmp = column.substring(5);
 				}else if(column.startsWith("SUM")){
 					fn=AggFunc.SUM;
 					tmp = column.substring(3);
-				}else if(column.startsWith("MAX"){
+				}else if(column.startsWith("MAX")){
 					fn=AggFunc.MAX;
 					tmp=column.substring(3);
-				}else if(column.startsWith("MIN"){
+				}else if(column.startsWith("MIN")){
 					fn=AggFunc.MIN;
 					tmp=column.substring(3);
 				}
-				fnCol = getColumnIndex(table,tmp);
+				fnCol = DBManager.getColumnIndex(table,tmp);
 			}
 		}
-		st = new StringTokenizer(having_part,' '); //func(col) >  X
+		st = new StringTokenizer(having_part," "); //func(col) >  X
 		st.nextToken();
 		String tmp = st.nextToken();
 		if(tmp==">"){
@@ -93,7 +94,7 @@ public class Input{
 		str.append(having_part);
 		return str.toString();
 	}
-	public Table getTable(){
+	public Tables getTable(){
 		return table;
 	}
 	public AggFunc getAggFunc(){
@@ -102,7 +103,7 @@ public class Input{
 	public int getComparisonNumber(){
 		return comparisonNumber;
 	}
-	public ArrayList<int> getcolumns(){
+	public ArrayList<String> getColumns(){
 		return columns;
 	}
 	public int getFnCol(){
